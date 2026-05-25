@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora Científica</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="calculadora">
+
+    <input type="text" id="display" class="display" readonly>
+
+    <div class="buttons">
+
+        <button onclick="adicionar('7')">7</button>
+        <button onclick="adicionar('8')">8</button>
+        <button onclick="adicionar('9')">9</button>
+        <button onclick="adicionar('/')">÷</button>
+
+        <button onclick="adicionar('4')">4</button>
+        <button onclick="adicionar('5')">5</button>
+        <button onclick="adicionar('6')">6</button>
+        <button onclick="adicionar('*')">×</button>
+
+        <button onclick="adicionar('1')">1</button>
+        <button onclick="adicionar('2')">2</button>
+        <button onclick="adicionar('3')">3</button>
+        <button onclick="adicionar('-')">−</button>
+
+        <button onclick="adicionar('0')">0</button>
+        <button onclick="adicionar('.')">.</button>
+        <button onclick="calcular()">=</button>
+        <button onclick="adicionar('+')">+</button>
+
+        <button onclick="adicionar('sqrt(')">√</button>
+        <button onclick="adicionar('sin(')">sin</button>
+        <button onclick="adicionar('cos(')">cos</button>
+        <button onclick="adicionar('tan(')">tan</button>
+
+        <button onclick="adicionar('log(')">log</button>
+        <button onclick="adicionar('ln(')">ln</button>
+        <button onclick="adicionar('pi')">π</button>
+        <button onclick="limpar()">C</button>
+
+    </div>
+
+</div>
+
+<script>
+
+const display = document.getElementById("display")
+
+function adicionar(valor){
+    display.value += valor
+}
+
+function limpar(){
+    display.value = ""
+}
+
+async function calcular(){
+
+    const resposta = await fetch('/calcular', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            expressao: display.value
+        })
+    })
+
+    const dados = await resposta.json()
+
+    display.value = dados.resultado
+}
+
+</script>
+
+</body>
+</html>
