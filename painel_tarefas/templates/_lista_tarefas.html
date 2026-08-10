@@ -1,0 +1,39 @@
+{% set cores = {'pendente': 'warning', 'andamento': 'primary', 'concluida': 'success'} %}
+{% set textos = {'pendente': 'Pendente', 'andamento': 'Em andamento', 'concluida': 'Concluída'} %}
+
+{% if tarefas|length == 0 %}
+<div class="col-12">
+    <div class="alert alert-secondary text-center">Nenhuma tarefa encontrada.</div>
+</div>
+{% else %}
+    {% for t in tarefas %}
+    <div class="col-md-4">
+        <div class="card h-100 border-{{ cores[t['status']] }} shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h5 class="card-title">{{ t['titulo'] }}</h5>
+                    <span class="badge text-bg-{{ cores[t['status']] }}">{{ textos[t['status']] }}</span>
+                </div>
+                <p class="card-text text-body-secondary">{{ t['descricao'] }}</p>
+            </div>
+            <div class="card-footer bg-transparent d-flex gap-2">
+                <a href="{{ url_for('editar', id=t['id']) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <form action="{{ url_for('excluir', id=t['id']) }}" method="POST" onsubmit="return confirm('Excluir esta tarefa?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+                {% if t['status'] != 'concluida' %}
+                <form action="{{ url_for('concluir', id=t['id']) }}" method="POST">
+                    <button type="submit" class="btn btn-sm btn-outline-success" title="Concluir">
+                        <i class="bi bi-check2-circle"></i>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}

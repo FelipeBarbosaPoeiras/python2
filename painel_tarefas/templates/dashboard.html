@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block titulo %}Minhas Tarefas{% endblock %}
+{% block conteudo %}
+
+{% if frase %}
+<div class="alert alert-info d-flex align-items-center" role="alert">
+    <i class="bi bi-lightbulb fs-4 me-2"></i>
+    <div><em>"{{ frase }}"</em></div>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <h3 class="mb-0"><i class="bi bi-list-task"></i> Minhas tarefas</h3>
+
+    <div class="d-flex align-items-center gap-2">
+        <label for="filtroStatus" class="form-label mb-0">Filtrar:</label>
+        <select id="filtroStatus" class="form-select form-select-sm" style="width: auto;">
+            <option value="todas" {% if status_filtro == 'todas' %}selected{% endif %}>Todas</option>
+            <option value="pendente" {% if status_filtro == 'pendente' %}selected{% endif %}>Pendente</option>
+            <option value="andamento" {% if status_filtro == 'andamento' %}selected{% endif %}>Em andamento</option>
+            <option value="concluida" {% if status_filtro == 'concluida' %}selected{% endif %}>Concluída</option>
+        </select>
+        <a href="{{ url_for('nova_tarefa') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Nova tarefa
+        </a>
+    </div>
+</div>
+
+<div id="listaTarefas" class="row g-3">
+    {% include "_lista_tarefas.html" %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 8) Filtro por status sem recarregar a página (fetch + rota JSON)
+    document.getElementById('filtroStatus').addEventListener('change', async (e) => {
+        const status = e.target.value;
+        const resp = await fetch(`/api/tarefas?status=${status}`);
+        const tarefas = await resp.json();
+        renderizarTarefas(tarefas);
+    });
+
+    function corDoStatus(status) {
+        return { pendente: 'warning', andamento: 'primary', concluida: 'success' }[status] || 'secondary';
+    }
+
+    function textoDoStatus(status) {
+        return { pendente: 'Pendente', andamento: 'Em andamento', concluida: 'Concluída' }[status] || status;
+    }
+
+    function renderizarTarefas(tarefas) {
+        const container = document.getElementById('listaTarefas');
+        if (tarefas.length === 0) {
+            container.innerHTML = `<div class="col-12"><div class="alert alert-secondary text-center">Nenhuma tarefa encontrada.</div></div>`;
+            return;
+        }
+        container.innerHTML = tarefas.map(t => `
+            <div class="col-md-4">
+                <div class="card h-100 border-${corDoStatus(t.status)} shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title">${t.titulo}</h5>
+                            <span class="badge text-bg-${corDoStatus(t.status)}">${textoDoStatus(t.status)}</span>
+                        </div>
+                        <p class="card-text text-body-secondary">${t.descricao ? t.descricao : ''}</p>
+                    </div>
+                    <div class="card-footer bg-transparent d-flex gap-2">
+                        <a href="/editar/${t.id}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <form action="/excluir/${t.id}" method="POST" onsubmit="return confirm('Excluir esta tarefa?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        ${t.status !== 'concluida' ? `
+                        <form action="/concluir/${t.id}" method="POST">
+                            <button type="submit" class="btn btn-sm btn-outline-success" title="Concluir">
+                                <i class="bi bi-check2-circle"></i>
+                            </button>
+                        </form>` : ''}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+</script>
+{% endblock %}
